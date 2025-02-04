@@ -18,15 +18,6 @@
             animation: fadeIn 2s ease-in-out;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
         .container {
             background-color: rgba(255, 255, 255, 0.8);
             padding: 20px;
@@ -36,17 +27,6 @@
             max-width: 400px;
             text-align: center;
             animation: slideUp 1.5s ease-in-out;
-        }
-
-        @keyframes slideUp {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
         }
 
         h1 {
@@ -92,20 +72,11 @@
             box-shadow: 0 0 5px #8a2be2;
         }
 
-        .result-container img {
-            max-width: 100%;
-            margin: 20px 0;
-        }
-
-        /* Media query for horizontal orientation */
-        @media (orientation: landscape) {
-            body {
-                background-size: contain; /* Ensure the entire background is visible */
-            }
-
-            .container {
-                width: 70%;
-            }
+        .exchange-rate {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #6a0dad;
         }
     </style>
 </head>
@@ -113,12 +84,14 @@
     <div class="container" id="menu">
         <h1>Bienvenido</h1>
         <p>¿Qué desea hacer?</p>
+        <p class="exchange-rate">Cargando tipo de cambio...</p>
         <button onclick="showConverter('usd')">Convertir Dólares a Pesos</button>
         <button onclick="showConverter('mxn')">Convertir Pesos a Dólares</button>
     </div>
 
     <div class="container hidden" id="converter">
         <h1 id="converterTitle"></h1>
+        <p class="exchange-rate" id="rate-display">Tipo de cambio actual: --</p>
         <div class="form-group">
             <label for="amount">Cantidad:</label>
             <input type="number" id="amount" placeholder="Ingresa la cantidad" />
@@ -135,6 +108,20 @@
 
     <script>
         let conversionType = '';
+        let exchangeRate = null;
+
+        async function getExchangeRate() {
+            try {
+                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+                const data = await response.json();
+                exchangeRate = data.rates.MXN;
+                document.querySelector('.exchange-rate').textContent = `1 USD = ${exchangeRate.toFixed(2)} MXN`;
+                document.getElementById('rate-display').textContent = `Tipo de cambio actual: ${exchangeRate.toFixed(2)} MXN`;
+            } catch (error) {
+                console.error('Error al obtener el tipo de cambio:', error);
+                document.querySelector('.exchange-rate').textContent = 'Error al cargar el tipo de cambio';
+            }
+        }
 
         function showConverter(type) {
             conversionType = type;
@@ -154,17 +141,6 @@
             document.getElementById('amount').value = '';
         }
 
-        async function getExchangeRate() {
-            try {
-                const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-                const data = await response.json();
-                return data.rates.MXN;
-            } catch (error) {
-                console.error('Error al obtener el tipo de cambio:', error);
-                return null;
-            }
-        }
-
         async function convert() {
             const amount = parseFloat(document.getElementById('amount').value);
             const resultDiv = document.getElementById('result');
@@ -174,7 +150,6 @@
                 return;
             }
 
-            const exchangeRate = await getExchangeRate();
             if (!exchangeRate) {
                 resultDiv.textContent = 'No se pudo obtener el tipo de cambio. Intenta nuevamente más tarde.';
                 return;
@@ -192,6 +167,10 @@
             document.getElementById('converter').classList.add('hidden');
             document.getElementById('result-container').classList.remove('hidden');
         }
+
+        // Obtener el tipo de cambio al cargar la página y actualizarlo cada minuto
+        getExchangeRate();
+        setInterval(getExchangeRate, 60000);
     </script>
 </body>
 </html>
