@@ -3,86 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login y Conversor</title>
+    <title>Conversor de Moneda</title>
     <style>
-        .hidden { display: none; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #4CAF50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+        }
+        label, input, select, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #008CBA;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #005f73;
+        }
     </style>
 </head>
 <body>
-    <div id="login-container">
-        <h2>Iniciar Sesión</h2>
-        <input type="text" id="username" placeholder="Usuario">
-        <input type="password" id="password" placeholder="Contraseña">
-        <p>Ingrese el CAPTCHA: <span id="captchaText"></span></p>
-        <input type="text" id="captchaInput" placeholder="Escriba el CAPTCHA">
-        <button onclick="generateCaptcha()">Refrescar CAPTCHA</button>
-        <button id="loginButton">Ingresar</button>
-    </div>
-
-    <div id="menu" class="hidden">
-        <h2>Menú</h2>
-        <button onclick="showConverter('mxn')">Convertir Pesos a Dólares</button>
-        <button onclick="showConverter('usd')">Convertir Dólares a Pesos</button>
-    </div>
-
-    <div id="converter" class="hidden">
-        <h2 id="converterTitle"></h2>
-        <input type="number" id="amount" placeholder="Ingrese cantidad">
-        <button onclick="convert()">Convertir</button>
-        <p id="result"></p>
-    </div>
-
-    <script>
-        function generateCaptcha() {
-            const captcha = Math.random().toString(36).substring(2, 8).toUpperCase();
-            document.getElementById('captchaText').textContent = captcha;
-        }
+    <div class="container">
+        <h2>Conversor de Moneda</h2>
+        <label for="monto">Cantidad:</label>
+        <input type="number" id="monto" placeholder="Ingrese el monto" required>
         
-        document.getElementById('loginButton').addEventListener('click', function() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const captchaInput = document.getElementById('captchaInput').value;
-            const captchaText = document.getElementById('captchaText').textContent;
-
-            if (captchaInput !== captchaText) {
-                alert('El CAPTCHA ingresado es incorrecto. Inténtelo de nuevo.');
-                generateCaptcha();
-                return;
-            }
-
-            if (username === 'roberto' && password === 'tochi1234') {
-                document.getElementById('login-container').classList.add('hidden');
-                document.getElementById('menu').classList.remove('hidden');
-            } else {
-                alert('Usuario o contraseña incorrectos.');
-            }
-        });
-
-        function showConverter(type) {
-            document.getElementById('menu').classList.add('hidden');
-            document.getElementById('converter').classList.remove('hidden');
-            document.getElementById('converterTitle').textContent =
-                type === 'mxn' ? 'Convertir de Pesos a Dólares' : 'Convertir de Dólares a Pesos';
+        <label for="monedaOrigen">De:</label>
+        <select id="monedaOrigen">
+            <option value="USD">Dólares (USD)</option>
+            <option value="EUR">Euros (EUR)</option>
+            <option value="MXN">Pesos Mexicanos (MXN)</option>
+        </select>
+        
+        <label for="monedaDestino">A:</label>
+        <select id="monedaDestino">
+            <option value="USD">Dólares (USD)</option>
+            <option value="EUR">Euros (EUR)</option>
+            <option value="MXN">Pesos Mexicanos (MXN)</option>
+        </select>
+        
+        <button onclick="convertirMoneda()">Convertir</button>
+        
+        <h3 id="resultado"></h3>
+    </div>
+    
+    <script>
+        function convertirMoneda() {
+            let monto = parseFloat(document.getElementById('monto').value);
+            let monedaOrigen = document.getElementById('monedaOrigen').value;
+            let monedaDestino = document.getElementById('monedaDestino').value;
+            
+            let tasas = {
+                'USD': { 'EUR': 0.85, 'MXN': 17, 'USD': 1 },
+                'EUR': { 'USD': 1.18, 'MXN': 20, 'EUR': 1 },
+                'MXN': { 'USD': 0.059, 'EUR': 0.050, 'MXN': 1 }
+            };
+            
+            let resultado = monto * tasas[monedaOrigen][monedaDestino];
+            document.getElementById('resultado').innerText = `Resultado: ${resultado.toFixed(2)} ${monedaDestino}`;
         }
-
-        function convert() {
-            const amount = parseFloat(document.getElementById('amount').value);
-            if (isNaN(amount) || amount <= 0) {
-                alert('Ingrese una cantidad válida.');
-                return;
-            }
-
-            let conversionRate = 0.058; // 1 MXN = 0.058 USD (ejemplo)
-            let resultText;
-            if (document.getElementById('converterTitle').textContent.includes('Pesos')) {
-                resultText = `${amount} MXN equivale a ${(amount * conversionRate).toFixed(2)} USD`;
-            } else {
-                resultText = `${amount} USD equivale a ${(amount / conversionRate).toFixed(2)} MXN`;
-            }
-            document.getElementById('result').textContent = resultText;
-        }
-
-        generateCaptcha();
     </script>
 </body>
 </html>
